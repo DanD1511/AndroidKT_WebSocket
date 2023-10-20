@@ -59,7 +59,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("com.github.rabross:SegmentedDisplay:v0.3.7")
 
     // webSockets
     implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.2")
