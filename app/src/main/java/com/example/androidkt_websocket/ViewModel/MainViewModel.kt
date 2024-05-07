@@ -17,7 +17,7 @@ import okhttp3.WebSocketListener
 class MainViewModel : ViewModel() {
     private val ipv4Data = IPV4_DATACLASS()
 
-    private val _addressState = MutableStateFlow("192.168.43.1")
+    private val _addressState = MutableStateFlow("192.168.58.114")
     val addressState = _addressState.asStateFlow()
 
     val isCorrectAddress = _addressState.map {
@@ -34,13 +34,34 @@ class MainViewModel : ViewModel() {
     private val _sliderValue = MutableStateFlow("90")
     val sliderValue = _sliderValue.asStateFlow()
 
+    private val _current = MutableStateFlow(0f) // Corriente calculada
+    val current = _current.asStateFlow()
+
     val socketAddress = combine(addressState, portState) { address, port ->
         "ws://$address:$port".also {
             Log.i("MainViewModel", "socketAddress: $it")
         }
     }
 
+    private var lastFilteredCurrent = 0f // EMA del valor anterior inicializado en 0
+    private val alpha = 0.2f // Factor de suavizado para el EMA
+
     private var webSocket: WebSocket? = null
+
+
+    fun processVoltage(voltage: String) {
+        try {
+            val voltageValue = voltage.toFloat()
+            val offsetVoltage = 2.35f  // Valor de offset
+            val sensitivity = 0.138f   // Sensibilidad
+            val rawCurrent = (voltageValue - offsetVoltage) / sensitivity
+            val filteredCurrent = alpha * rawCurrent + (1 - alpha) * lastFilteredCurrent // Aplica EMA
+            lastFilteredCurrent = filteredCurrent // Actualiza el valor filtrado para la próxima iteración
+            _current.value = filteredCurrent  // Actualiza el flujo de corriente
+        } catch (e: NumberFormatException) {
+            println("Error al procesar el voltaje: ${e.message}")
+        }
+    }
 
     fun connectWebSocket() {
             val addressValue = addressState.value // Recopila el valor de addressState
@@ -62,7 +83,8 @@ class MainViewModel : ViewModel() {
 
                 override fun onMessage(webSocket: WebSocket, text: String) {
                     super.onMessage(webSocket, text)
-                    // Mensaje recibido desde el servidor
+                    processVoltage(text)  // Procesa el voltaje para calcular la corriente
+                    //_current.value = text.toFloat()
                     println("Mensaje recibido: $text")
                 }
 

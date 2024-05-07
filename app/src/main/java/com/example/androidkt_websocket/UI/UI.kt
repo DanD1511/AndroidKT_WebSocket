@@ -35,6 +35,7 @@ class UI (
         val isAddressCorrect by viewModel.isCorrectAddress.collectAsState(initial = true)
         val isPortCorrect by viewModel.isCorrectPort.collectAsState(initial = true)
         val sliderPercent by viewModel.sliderValue.collectAsState("90")
+        val current by viewModel.current.collectAsState()
 
         Box(
             modifier = Modifier
@@ -46,6 +47,8 @@ class UI (
                     .align(Alignment.Center)
             ) {
                 Column {
+                    Text(text = "Corriente: ${current}A")
+                    Spacer(modifier = Modifier.height(16.dp))
                     Text(text = sliderPercent)
                     Spacer(modifier = Modifier.height(16.dp))
                     Slider(
